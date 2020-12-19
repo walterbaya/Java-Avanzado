@@ -1,0 +1,2 @@
+En general no se recomienda usar clases internas, ya que el codigo queda extenso, feo
+y poco escalable, por ello es mucho mas recomendable usar interfaces.

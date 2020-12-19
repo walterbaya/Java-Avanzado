@@ -1,0 +1,430 @@
+INTRODUCCIÓN A NETWORKING (SEGUNDA PARTE PARTE) 
+Introducción a Networking 
+
+En los sockets TCP es necesario establecer una conexión. El servidor TCP espera que un cliente TCP se le conecte. Una vez hecha la conexión, se pueden enviar mensajes. El protocolo TCP garantiza que todos los mensajes enviados van a llegar bien y en el orden enviado. Sólo el cliente necesita saber dónde está el servidor y en qué puerto está escuchando.
+
+Por el contrario, en los sockets UDP no se establece conexión. El servidor se pone a la escucha de un puerto de su ordenador. El cliente también se pone a la escucha de un puerto de su ordenador. En cualquier momento, cualquiera de ellos puede enviar un mensaje al otro. Ambos necesitan saber en qué ordenador y en qué puerto está escuchando el otro. Aquí el concepto de cliente y servidor está un poco más difuso que en el caso de TCP. Podemos considerar servidor al que espera un mensaje y responde. Cliente sería el que inicia el envío de mensajes. El servidor debería, además, estar siempre arrancado y a la escucha.
+
+Además, en contra de TCP, el protocolo UDP sólo garantiza que si el mensaje llega, llega bien. No garantiza que llegue ni que lleguen en el mismo orden que se han enviado. Este tipo de sockets es útil para el envío más o menos masivo de información no crucial. Por ejemplo, enviar los datos para el refresco de gráficos en una pantalla.
+
+Otra ventaja de UDP respecto a TCP, es que con UDP se puede enviar un mensaje a varios receptores a la vez, mientras que en TCP, al haber una conexión previa, sólo se puede enviar el mensaje al que está conectado al otro lado. Con UDP se puede, por ejemplo, enviar una sola vez los datos para que varias pantallas refresquen sus gráficos a la vez.
+Implementación en JAVA (UDP) 
+La clase InetAddress 
+
+La clase InetAddress proporciona objetos que se pueden utilizar para manipular tanto direcciones IP como nombres de dominio; sin embargo, no se pueden instanciar estos objetos directamente. La clase proporciona varios métodos estáticos que devuelven un objeto de tipo InetAddress.
+
+El método estático getByName() devuelve un objeto InetAddress representando el host que se le pasa como parámetro. Este método se puede utilizar para determinar la dirección IP de un host, conociendo su nombre; entendiendo por nombre del host el nombre de la máquina, como "java.sun.com", o la representación como cadena de su dirección IP, como "206.26.48.100". El método getAllByName()devuelve un array de objetos InetAddress, y se puede utilizar para determinar todas las direcciones IP asignadas a un host. El método getLocalHost() devuelve un objeto InetAddress representando el ordenador local sobre el que se ejecuta la aplicación.
+
+El primer trozo de código interesante es el que obtiene un objeto InetAddress representando un determinado servidor y presenta esta dirección utilizando el método sobrecargado toString() de la clase InetAddress.
+
+InetAddress address = InetAddress.getByName( "www.educacionit.com.ar" );
+System.out.println( address );
+
+El siguiente código es la acción contraria al anterior, en que se proporciona la dirección IP para presentar el nombre del host. Como ya se ha indicado, el método getByName() puede aceptar como parámetro de entrada tanto el nombre del host, como su dirección IP en forma de cadena. El código, utiliza el resultado de la llamada al método anterior para construir una cadena con la parte numérica del resultado, que es pasada al método getByName().
+
+int temp = address.toString().indexOf( '/' );
+address = InetAddress.getByName( address.toString().substring(temp+1) );
+System.out.println( address );
+
+El término localhost se utiliza para describir el ordenador local, la máquina en la que se está ejecutando la aplicación. Cuando se conecta a una red IP, el ordenador local debe tener una dirección IP, que puede conseguir de diferentes formas; no obstante, la siguiente explicación se basa en que el ordenador sobre el cual se ejecuta la aplicación se conecta a través de la línea telefónica con un proveedor de Internet, que es el que abre el acceso a Internet de la máquina local.
+
+El proveedor de Internet tiene reservadas una serie de direcciones IP, que puede compartir entre todos sus clientes. Cuando alguien se conecta al proveedor, automáticamente se le asigna una dirección a esa conexión, válida durante todo el tiempo que dure esa sesión. Si se produce una desconexión y luego se vuelve a conectar, lo más seguro es que la dirección IP no se la mima que se había asignado a la primera conexión.
+
+Aunque esa sea la situación más habitual del lector, en otras ocasiones puede ser diferente. Por ejemplo, si el ordenador se encuentra en la red interna de ordenadores de una empresa, esa empresa puede tener un bloque de direcciones IP reservadas y asignar permanentemente las direcciones a los ordenadores; en cuyo caso, cada vez que se ejecute el programa, la dirección IP será siempre la misma. También es posible que el lector disponga de su propia dirección permanente IP y nombre de dominio.
+
+En cualquier caso, el método getLocalHost() se puede utilizar para obtener un objeto de tipo InetAddress que represente al ordenador en el cual se está ejecutando la aplicación. Eso es justamente lo que muestra el código que aparece a continuación.
+
+address = InetAddress.getLocalHost();
+System.out.println( address );
+
+En este caso, la parte numérica que aparece al ejecutar el programa, corresponde a la dirección que el proveedor de Internet ha asignado a la conexión sobre la cual se estaba corriendo el programa.
+
+Las líneas de código siguientes realizan la operación contraria a las anteriores; se utiliza el método getByName() para determinar el nombre por el cual el servidor de nombres de dominio reconoce a esa dirección numérica.
+
+temp = address.toString().indexOf( '/' );
+address = InetAddress.getByName( address.toString().substring(temp+1) );
+System.out.println( address );
+
+Una vez que se ha obtenido el objeto InetAddress, hay otra serie de métodos de la clase InetAddress que se pueden utilizar para invocar a este objeto; por ejemplo, las siguientes líneas de código muestran la invocación del método getHostName(), para obtener el nombre de la máquina.
+
+System.out.println( address.getHostName() );
+
+De forma semejante, el siguiente fragmento de código utiliza la invocación del método getAddress() para obtener un array de bytes conteniendo la dirección IP de la máquina.
+
+byte[] bytes = address.getAddress();
+// Convierte los bytes de la dirección IP a valores sin
+// signo y los presenta separados por espacios
+for( int cnt=0; cnt < bytes.length; cnt++ ) {
+   int uByte = bytes[cnt] < 0 ? bytes[cnt]+256 : bytes[cnt];
+   System.out.print( uByte+" " );
+}
+
+
+Como no existe nada parecido a un byte sin signo en Java, la conversión del array de bytes en algo que se pueda presentar en pantalla
+requiere una cierta manipulación de los bytes, tal como se hace en el bucle for del código anterior.
+
+
+Arquitectura de comunicaciones 
+
+La clase DatagramPacket, junto con la clase DatagramSocket, son las que se utilizan para la implementación del protocolo UDP (User Datagram Protocol).
+
+En este protocolo, a diferencia de lo que ocurría en el protocolo TCP, 
+en el cual si un paquete se dañaba durante la transmisión se re enviaba ese paquete, 
+para asegurar una comunicación segura entre cliente y servidor;
+con UDP no hay garantía alguna de que los paquetes lleguen en el orden correcto a su destino y,
+ni tan siquiera hay seguridad de que lleguen todos los paquetes que se hayan enviado. Sin embargo,
+los paquetes que consiguen llegar, lo hacen mucho más rápidamente que con TCP y, en algunos casos,
+la velocidad de transmisión es mucho más importante que el hecho de que lleguen todos los paquetes; 
+por ejemplo, si lo que se están transmitiendo son señales de sensores en tiempo real para la presentación en pantalla, 
+la velocidad es más importante que la integridad, ya que si un paquete no llega o no puede recomponerse, en el instante siguiente llegará otro.
+
+La programación para uso del protocolo UDP se diferencia de la programación para utilizar el protocolo TCP en que no existe el concepto de ServerSocket
+para los datagramas y que es el programador el que debe construirse sus propios paquetes a enviar por UDP.
+Para enviar datos a través de UDP, hay que construir un objeto de tipo DatagramPacket y enviarlo a través de un objeto DatagramSocket, 
+y al revés para recibirlos, es decir, a través de un objeto DatagramSocket se recoge el objeto DatagramPacket.
+Toda la información respecto a la dirección, puerto y datos, está contenida en el paquete.
+
+Para enviar un paquete, primero se construye ese paquete con la información que se desea transmitir, luego se almacena en un objeto DatagramSocket y,
+finalmente se invoca el método send() sobre ese objeto.
+Para recibir un paquete, primero se construye un paquete vacío,
+luego se le presenta a un objeto DatagramSocket para que almacene allí el resultado de la ejecución del método receive() sobre ese objeto.
+
+Hay que tener en cuenta que la tarea encargada de todo esto estará bloqueada en el método receive() hasta que un paquete físico de datos se reciba a través de la red;
+este paquete físico será el que se utilice para rellenar el paquete vacío que se había creado.
+
+También hay que tener cuidado cuando se pone a escuchar a un objeto DatagramSocket en un puerto determinado, ya que va a recibir los datagramas enviados por 
+cualquier cliente. Es decir, que si los mensajes enviados por los clientes están formados por múltiples paquetes; 
+en la recepción pueden llegar paquetes entremezclados de varios clientes y es responsabilidad de la aplicación el ordenarlos.
+La clase DatagramPacket 
+
+Para la clase DatagramPacket se dispone de dos constructores, uno utilizado cuando se quieran enviar paquetes y el otro se usa cuando se quieren recibir paquetes.
+Ambos requieren que se les proporcione un array de bytes y la longitud que tiene. En el caso de la recepción de datos, no es necesario nada más, 
+los datos que se reciban se depositarán en el array; aunque, en el caso de que se reciban más datos físicos de los que soporta el array, 
+el exceso de información se perderá y se lanzará una excepción de tipo IllegalArgumentException, que a pesar de que no sea necesaria su captura,
+ siempre es bueno recogerla.
+
+Cuando se construye el paquete a enviar, es necesario colocar los datos en el array antes de llamar al método send(); además de eso, 
+hay que incluir la longitud de ese array y, también se debe proporcionar un objeto de tipo InetAddress indicando la dirección de destino del paquete 
+y el número del puerto de ese destino en cual estará escuchando el receptor del mensaje. Es decir, que la dirección de destino y el puerto de escucha deben 
+ir en el paquete, al contrario de lo que pasaba en el caso de TCP que se indican en el momento de construir el objeto Socket.
+
+El tamaño físico máximo de un datagrama es 65,535 bytes, y teniendo en cuenta que hay que incluir datos de cabecera, 
+esa longitud nunca está disponible para datos de usuario, sino que siempre es algo menor.
+
+La clase DatagramPacket proporciona varios métodos para poder extraer los datos que llegan en el paquete recibido.
+La información que se obtiene con cada método coincide con el propio nombre del método, aunque hay algunos casos en que es necesario saber 
+interpretar la información que proporciona ese mismo método.
+
+// Para envío
+
+DatagramPacket dato = new DatagramPacket(data, // El array de bytes
+
+data.length, // Su longitud
+
+InetAddress.getByName(HOST_DESTINO),  // Destinatario
+
+PUERTO_DESTINO);   // Puerto del destinatario
+
+//Para recepción
+
+DatagramPacket dato = new DatagramPacket(new byte[100], 100);
+
+
+
+
+El método getAddress() devuelve un objeto de tipo InetAddress que contiene la dirección del host remoto. 
+El saber cuál es el ordenador de origen del envío depende de la forma en que se haya obtenido el datagrama. 
+Si ese datagrama ha sido recibido a través de Internet, la dirección representará al ordenador que ha enviado el datagrama (el origen del datagrama); 
+pero si el datagrama se ha construido localmente, la dirección representará al ordenador al cual se intenta enviar el datagrama (el destino del datagrama).
+
+De igual modo, el método getPort() devuelve el puerto desde el cual ha sido enviado el datagrama, o el puerto a través del cual se enviara, 
+dependiendo de la forma en que se haya obtenido el datagrama.
+
+El método getData() devuelve un array de bytes que contiene la parte de datos del datagrama, ya eliminada la cabecera con la información de encaminamiento 
+de ese datagrama. La forma de interpretar ese array depende del tipo de datos que contenga. Los ejemplos que se ven en este Tutorial utilizan exclusivamente
+datos de tipo String, pero esto no es un requerimiento, y se pueden utilizar datagramas para intercambiar cualquier tipo de datos, siempre que se puedan colocar 
+en un array de bytes en un ordenador y extraerlos de ese array en la parte contraria. Es decir, que la responsabilidad del sistema se limita al desplazamiento del
+array de bytes de un ordenador a otro, y es responsabilidad del programador el asignar significado a esos bytes.
+
+El método getLength() devuelve el número de bytes que contiene la parte de datos del datagrama, y el método getOffset() devuelve la posición en la cual empieza el
+array de bytes dentro del datagrama completo.
+
+La clase DatagramSocket 
+
+Un objeto de la clase DatagramSocket puede utilizarse tanto para enviar como para recibir un datagrama.
+
+La clase tiene tres constructores. Uno de ellos se conecta al primer puerto libre de la máquina local; el otro permite especificar el puerto a través del cual
+operará el socket; y el tercero permite especificar un puerto y una dirección para identificar a una máquina concreta.
+Independientemente del constructor que se utilice, el puerto desde el cual se envíe el datagrama, siempre se incluirá en la cabecera del paquete. 
+Normalmente, la parte del servidor utilizará el constructor que permite indicar el puerto concreto a usar, ya que sino, 
+la parte cliente no tendría forma de conocer el puerto por el cual le van a llegar los datagramas.
+
+La parte cliente puede utilizar cualquier constructor, pero por flexibilidad, lo mejor es utilizar el constructor que deja que el sistema seleccione uno de los 
+puertos disponibles. El servidor debería entonces comprobar cuál es el puerto que se está utilizando para el envío de datagramas y enviar la respuesta por ese puerto.
+
+A diferencia de esta posibilidad de especificar el puerto, o no hacerlo, no hay ninguna otra diferencia entre los sockets datagrama utilizados por cliente y servidor. Si el lector se encuentra un poco perdido, no desespere, porque en los ejemplos todo esto que es muy difícil explicar con palabras, se ve mucho más claramente al intuir el funcionamiento físico de la comunicación entre cliente y servidor.
+
+// Para recepción
+
+DatagramSocket socket = new DatagramSocket(
+
+   PUERTO_RECEPCION,
+
+   InetAddress.getByName("localhost"));
+
+// Para envío
+
+DatagramSocket socket = new DatagramSocket(
+
+  PUERTO_DESTINO,
+
+   InetAddress.getByName(HOST_DESTINO));
+
+Para enviar un datagrama hay que invocar al método send() sobre un socket datagrama existente, pasándole el objeto paquete como parámetro. 
+Cuando el paquete es enviado, la dirección y número de puerto del ordenador origen se coloca automáticamente en la porción de cabecera del paquete,
+ de forma que esa información pueda ser recuperada en el ordenador destino del paquete.
+
+socket.send(packet);
+
+Para recibir datagramas, hay que instanciar un objeto de tipo DatagramSocket, conectarse a un puerto determinado e invocar al método receive() sobre ese socket.
+Este método bloquea la tarea hasta que se recibe un datagrama, por lo que si es necesario hacer alguna cosa durante la espera, hay que invocar al método receive()
+en su propia tarea.
+
+socket.receive(packet);
+
+Si se trata de un servidor, hay que conectarse con un puerto específico. Si se trata de un cliente que está esperando respuestas de un servidor, 
+hay que escuchar en el mismo puerto que fue utilizado para enviar el datagrama inicial. Si se envía un datagrama a un puerto anónimo, 
+se puede mantener el socket abierto que fue utilizado en el envío del primer datagrama y utilizar ese mismo socket para esperar la respuesta.
+También se puede invocar al método getLocalPort() sobre el socket antes de cerrarlo, de forma que se pueda saber y guardar el número del puerto que se ha empleado;
+de este modo se puede cerrar el socket original y abrir otro socket en el mismo puerto en el momento en que se necesite.
+
+Para responder a un datagrama, hay que obtener la dirección del origen y el número de puerto a través del cual fue enviado el datagrama, 
+de la cabecera del paquete y luego, colocar esta información en el nuevo paquete que se construya con la información a enviar como respuesta.
+Una vez pasada esta información a la parte de datos del paquete, se invoca al método send() sobre el objeto DatagramSocket existente, 
+pasándole el objeto paquete como parámetro.
+
+Es importante tener en en cuenta que los números de puerto TCP y UDP no están relacionados. Se puede utilizar el mismo número de puerto en dos procesos
+si uno se comunica a través de protocolo TCP y el otro lo hace a través de protocolo UDP. Es muy común que los servidores utilicen el mismo puerto
+para proporcionar servicios similares a través de los dos protocolos en algunos servicios estándar, como puede ser el echo.
+Construcción de un Servidor UDP 
+La clase Servidor UDP 
+
+Veamos el código que presentamos en el siguiente ejemplo, donde desarrollamos un mínimo servidor UDP, para el cual desarrollaremos después su contrapartida cliente
+UDP.
+
+public class UDPServer {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        try {
+
+                DatagramSocket socket = new DatagramSocket(5000, InetAddress.getByName("localhost"));
+
+                DatagramPacket dato = new DatagramPacket(
+
+                   "hola".getBytes(), // El array de bytes
+
+                   "hola".getBytes().length, // Su longitud
+
+                    InetAddress.getByName("localhost"),  // Destinatario
+
+                   4000);   // Puerto del destinatario
+
+                while (true) {
+
+                try {
+
+                    socket.send(dato);
+
+                    Thread.currentThread().sleep(2000);
+
+                } catch (IOException ex) {
+
+Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+                }
+
+                                }
+
+        } catch (SocketException ex) {
+
+            Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+        }  catch (UnknownHostException ex) {
+
+                Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+
+    }
+
+}
+
+La clase Cliente UDP 
+
+El lado cliente de una aplicación UDP descansa en las mismas clases que el servidor.
+
+public class UDPClient {
+
+        public static void main(String[] args) throws InterruptedException {
+
+        try {
+
+                DatagramSocket socket = new DatagramSocket(4000, InetAddress.getByName("localhost"));
+
+                DatagramPacket dato = new DatagramPacket(new byte[100], 100);
+
+                while ( true) {
+
+                try {
+
+                    socket.receive(dato);
+
+                    System.out.println(new String(dato.getData()));
+
+                    Thread.currentThread().sleep(2000);
+
+                } catch (IOException ex) {
+
+Logger.getLogger(UDPClient.class.getName()).log(Level.SEVERE, null, ex);
+
+                }
+
+                }
+
+        } catch (SocketException ex) {
+
+Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+        }  catch (UnknownHostException ex) {
+
+Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+
+    }
+
+}
+
+Multicast 
+
+El Multicast es un método de direccionamiento IP. Una dirección multicast está asociada con un grupo de receptores interesados.
+ De acuerdo al RFC 3171 las direcciones desde la 224.0.0.0 a la 239.255.255.255 están destinadas para ser direcciones de multicast.
+ Este rango se llama formalmente "Clase D".
+
+El emisor envía un único datagrama (desde la dirección unicast del emisor) a la dirección multicast y el router se encargará de hacer copias y 
+enviarlas a todos los receptores que hayan informado de su interés por los datos de ese emisor.
+
+
+La clase MulticastSocket 
+
+Java proporciona una interfaz de datagramas para multicast IP a través de la clase MulticastSocket, que es una subclase de DatagramSocket, con la capacidad adicional de ser capaz de pertenecer a grupos multicast.
+
+--------------------------------------------
+-------------------------------------------
+
+ME QUEDE
+ACA
+-------------------------------------------
+------------------------------------------
+-------------------------------------------
+La clase MulticastSocket proporciona dos constructores alternativos:
+
+    MulticastSocket(): que crea el socket en cualquiera de los puertos locales libres.
+    MulticastSocket(int port): que crea el socket en el puerto local indicado.
+
+Un proceso puede pertenecer a un grupo multicast invocando el método joinGroup(InetAddress mcastaddr) de su socket multicast. 
+Así, el socket pertenecerá a un grupo de multidifusión en un puerto dado y recibirá los datagramas enviados por los procesos 
+en otros computadores a ese grupo en ese puerto. Un proceso puede dejar un grupo dado invocando el método leaveGroup(InetAddress mcastaddr)  de su socket multicast.
+
+Para enviar datos a un grupo multicast se utiliza el método send(DatagramPacket p), este método es muy similar al de la clase DatagramSocket, 
+la diferencia es que este datagrama será enviado a todos los miembros del grupo multicast.
+
+Para recibir datos de un grupo multicast se utiliza el método receive(DatagramPacket p) de la clase DatagramSocket super clase de MulticastSocket.
+
+Es necesario pertenecer a un grupo para recibir mensajes multicast enviados a ese grupo, pero no es necesario para enviar mensajes.
+La clase Servidor Multicast UDP 
+
+public class MulticastServer {
+
+    public static void main(String[] args) throws IOException {
+
+    try {
+
+                byte[] b = new byte[100];
+
+                DatagramPacket dgram = new DatagramPacket(b, b.length);
+
+                MulticastSocket socket = new MulticastSocket(4000); // must bind receive side
+
+                socket.joinGroup(InetAddress.getByName("235.1.1.1"));
+
+                while(true) {
+
+                  socket.receive(dgram); // blocks until a datagram is received
+
+                  System.err.println("Received " + dgram.getLength() +
+
+                    " bytes from " + dgram.getAddress() + new String(dgram.getData()));
+
+                  dgram.setLength(b.length); // must reset length field!
+
+                }
+
+        } catch (SocketException ex) {
+
+            Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+        }  catch (UnknownHostException ex) {
+
+                Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+
+    }
+
+}
+
+La clase Cliente Multicast UDP 
+
+public class MulticastCliente {
+
+     public static void main(String[] args) throws InterruptedException, IOException {
+
+        try {
+
+                DatagramSocket socket = new DatagramSocket();
+
+                byte[] b = "Dario Hruszecki".getBytes();
+
+                DatagramPacket dgram;
+
+                dgram = new DatagramPacket(b, b.length,InetAddress.getByName("235.1.1.1"), 4000);
+
+                System.err.println("Sending " + b.length + " bytes to " +
+
+                  dgram.getAddress() + ':' + dgram.getPort());
+
+                while(true) {
+
+                  System.err.print(".");
+
+                         socket.send(dgram);
+
+                                                  Thread.sleep(1000);
+
+                }
+
+        } catch (SocketException ex) {
+
+            Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+        }  catch (UnknownHostException ex) {
+
+                Logger.getLogger(UDPServer.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+
+    }
+
+}

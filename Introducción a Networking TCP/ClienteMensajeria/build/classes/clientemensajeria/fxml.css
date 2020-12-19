@@ -1,0 +1,35 @@
+.mainFxmlClass {
+    -fx-background-color: white;
+}
+
+#agregarContacto{
+    -fx-width: 100px;
+}
+
+#horizontal{
+   
+}
+
+#vertical{
+   
+}
+
+
+#mensajesEntrantesLabel{ 
+    -fx-background-color: #ccccff;
+    -fx-border-color: #cccccc;  
+}
+
+TextArea{
+    -fx-border-style: none;
+}
+
+#listaDeContactos{
+   -fx-background-color:  #ccccff; 
+   -fx-border-color: #cccccc;  
+}
+
+#mensaje{
+    -fx-background-color:  #ccccff;
+    -fx-border-color: #cccccc;  
+}

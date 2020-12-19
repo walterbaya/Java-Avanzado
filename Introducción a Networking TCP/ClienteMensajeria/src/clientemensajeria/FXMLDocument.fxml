@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<AnchorPane id="AnchorPane" prefHeight="200" prefWidth="320" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="clientemensajeria.FXMLDocumentController">
+     <stylesheets>
+        <URL value="@fxml.css" />
+    </stylesheets>
+    <children>
+      <AnchorPane fx:id="AnchorPane" layoutY="1.0" prefHeight="489.0" prefWidth="592.0" styleClass="mainFxmlClass" stylesheets="@fxml.css">
+         <children>
+            <Separator fx:id="vertical" layoutX="300.0" layoutY="14.0" orientation="VERTICAL" prefHeight="284.0" prefWidth="7.0" />
+            <TextArea fx:id="mensajesEntrantes" layoutX="26.0" layoutY="349.0" prefHeight="112.0" prefWidth="542.0" />
+            <Label fx:id="mensajesEntrantesLabel" alignment="CENTER" layoutX="26.0" layoutY="308.0" prefHeight="37.0" prefWidth="542.0" text="Mensajes Entrantes" textAlignment="CENTER" />
+            <GridPane layoutX="25.0" layoutY="14.0" prefHeight="79.0" prefWidth="263.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="127.0" minWidth="10.0" prefWidth="35.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="232.0" minWidth="10.0" prefWidth="228.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="53.0" minHeight="10.0" prefHeight="28.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label text="Host" />
+                  <Label text="Port" GridPane.rowIndex="1" />
+                  <TextField id="host" fx:id="host" prefHeight="25.0" prefWidth="147.0" GridPane.columnIndex="1" />
+                  <TextField id="port" fx:id="port" prefHeight="28.0" prefWidth="206.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+               </children>
+            </GridPane>
+            <Label fx:id="mensaje" alignment="CENTER" layoutX="24.0" layoutY="137.0" prefHeight="28.0" prefWidth="263.0" text="Mensaje" />
+            <TextArea fx:id="mensajeRecibido" layoutX="25.0" layoutY="169.0" prefHeight="94.0" prefWidth="263.0" />
+            <Label id="listaDeContactos" alignment="CENTER" layoutX="314.0" layoutY="13.0" prefHeight="28.0" prefWidth="255.0" text="Lista de Contactos" />
+            <TextArea fx:id="listaDeContactos" layoutX="314.0" layoutY="46.0" prefHeight="250.0" prefWidth="255.0" />
+            <Button fx:id="agregarContacto" layoutX="24.0" layoutY="103.0" mnemonicParsing="false" onAction="#agregarContacto" prefHeight="25.0" prefWidth="263.0" text="Agregar Contacto" />
+            <Button fx:id="enviarMensaje" layoutX="25.0" layoutY="271.0" mnemonicParsing="false" onAction="#enviarMensaje" prefHeight="25.0" prefWidth="263.0" text="Enviar Mensaje" />
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>

@@ -1,0 +1,43 @@
+Para realizar este ejercicio tomar como base el código del ejercicio anterior.
+
+Agregarle la posibilidad de descubrir otros clientes de chat abiertos, así como también la posibilidad de ser descubierto:        
+
+
+Cuando un cliente es levantado comienza a informar en forma continua y cada         X cantidad de tiempo que se encuentra en ese estado. Esto se debe realizar enviando un mensaje por UDP al puerto 4000 y un datagrama a una IP de multicast (por ej 235.1.1.1)         
+En forma paralela registrarse a la misma IP de multicast y al puerto 4000 para escuchar todos los posibles datagramas que lleguen. Así será posible detectar a todos los clientes de mensajería levantados y tomar sus host.
+Por cada datagrama detectado agregar un nuevo contacto en la lista, validando que ya no exista
+Opcionalmente, agregar la funcionalidad para detectar clientes desconectados y sacarlos de la lista
+
+Para lograr esto vamos a necesitar las siguientes clases:
+
+
+BroadcastDeContacto
+
+Esta clase va a ser un thread o runnable y se instanciará y arrancará por única vez al iniciar nuestra aplicación y correrá mientras la aplicación siga levantada.
+
+
+Su responsabilidad será:
+
+enviar continuamente cada x segundos un paquete vacio a la direccion de multicas 235.1.1.1:4000
+
+ReceptorDeContactos
+
+Esta clase va a ser un thread o runnable y se instanciará y arrancará por única vez al iniciar nuestra aplicación y correrá mientras la aplicación siga levantada.
+
+
+Su responsabilidad será:
+
+abrir un MulticastSocket en el puerto 4000
+registrar el multicast socket en el grupo 235.1.1.1
+por cada conexión recibida pasarle packet a una instancia de la clase ManejadorDeContactos y arrancarla.
+debe funcionar en bucle infinito
+
+ManejadorDeContactos
+
+Esta clase va a ser un thread o runnable y se será instanciada y arrancada por el ReceptorDeContactos cada  vez que reciba una nueva conexión.
+
+
+Su responsabilidad será:
+
+obtener el InetAddress del packet
+agregar, si corresponde, el nuevo contacto en la lista de contactos
